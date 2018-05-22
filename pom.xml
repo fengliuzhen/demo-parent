@@ -13,7 +13,6 @@
 		<module>demo-service</module>
 		<module>demo-job</module>
 		<module>demo-service-impl</module>
-		<module>demo-admin</module>
 	</modules>
     <packaging>pom</packaging>
 
