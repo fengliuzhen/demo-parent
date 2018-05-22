@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.flz.demo.dao.UserDao">
+    <resultMap id="BaseResultMap" type="com.flz.demo.entity.UserEntity">
+        <id column="UserId" property="userId" jdbcType="INTEGER"></id>
+        <result column="UserName" property="userName" jdbcType="VARCHAR"></result>
+        <result column="RealName" property="realName" jdbcType="VARCHAR"></result>
+        <result column="IsLocked" property="isLocked" jdbcType="INTEGER"></result>
+        <result column="CreateTime" property="createTime" jdbcType="TIMESTAMP"></result>
+    </resultMap>
+    <select id="getUserEntity" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+      SELECT su.UserId,su.UserName,su.RealName,su.IsLocked,su.CreateTime
+      FROM sys_user su WHERE su.UserId=#{userId,jdbcType=INTEGER};
+    </select>
+</mapper>
