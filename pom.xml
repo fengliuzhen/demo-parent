@@ -11,7 +11,6 @@
         <module>demo-entity</module>
 		<module>demo-dao</module>
 		<module>demo-service</module>
-		<module>demo-job</module>
 		<module>demo-service-impl</module>
 	</modules>
     <packaging>pom</packaging>

@@ -6,6 +6,8 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="demo-admin" />
+        <module name="demo-api" />
         <module name="demo-common" />
         <module name="demo-dao" />
         <module name="demo-entity" />
@@ -14,14 +16,5 @@
         <module name="demo-service-impl" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="demo-common" target="1.8" />
-      <module name="demo-dao" target="1.8" />
-      <module name="demo-entity" target="1.8" />
-      <module name="demo-job" target="1.8" />
-      <module name="demo-parent" target="1.8" />
-      <module name="demo-service" target="1.8" />
-      <module name="demo-service-impl" target="1.8" />
-    </bytecodeTargetLevel>
   </component>
 </project>
