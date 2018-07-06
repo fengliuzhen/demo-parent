@@ -12,7 +12,7 @@ public class MyZuulFilter extends ZuulFilter {
 
     @Override
     public String filterType() {
-        return null;
+        return "pre";
     }
 
     @Override
@@ -27,17 +27,17 @@ public class MyZuulFilter extends ZuulFilter {
 
     @Override
     public Object run() {
-        try {
-            RequestContext ctx = RequestContext.getCurrentContext();
-            HttpServletRequest request = ctx.getRequest();
-            HttpServletResponse response = ctx.getResponse();
+        //try {
+            //RequestContext ctx = RequestContext.getCurrentContext();
+            //HttpServletRequest request = ctx.getRequest();
+            //HttpServletResponse response = ctx.getResponse();
 
-            request.getRequestDispatcher("/hello").forward(request, response);
-        }
-        catch (Exception ex)
-        {
+           // request.getRequestDispatcher("/hello").forward(request, response);
+        //}
+        //catch (Exception ex)
+        //{
 
-        }
+        //}
         return null;
     }
 }

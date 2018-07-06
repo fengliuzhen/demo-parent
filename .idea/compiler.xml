@@ -20,6 +20,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="demo-api-package" target="1.8" />
       <module name="demo-eureka (1)" target="1.8" />
     </bytecodeTargetLevel>
   </component>

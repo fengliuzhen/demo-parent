@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan(basePackages ={"com.flz.demo.*"})
-@MapperScan("com.flz.demo.dao.**")
+@ComponentScan(basePackages ={"com.flz.demo.service.*"})
+@MapperScan("com.flz.demo.dao")
 public class ApiApplication {
 
 	public static void main(String[] args) {
