@@ -15,6 +15,7 @@
         <module name="demo-gateway" />
         <module name="demo-job" />
         <module name="demo-producer" />
+        <module name="demo-quartz" />
         <module name="demo-service" />
         <module name="demo-service-impl" />
       </profile>
