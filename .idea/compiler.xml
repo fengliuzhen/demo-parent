@@ -18,6 +18,7 @@
         <module name="demo-quartz" />
         <module name="demo-service" />
         <module name="demo-service-impl" />
+        <module name="demo-zkms" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

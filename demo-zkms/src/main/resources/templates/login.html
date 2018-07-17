@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/element-ui/index.css" th:src="@{/element-ui/index.css}">
+    <script type="application/javascript" src="/js/jquery-3.3.1.min.js" th:src="@{/js/jquery-3.3.1.min.js}"></script>
+    <script type="application/javascript" src="/js/json2.js" th:src="@{/js/json2.js}"></script>
+    <script type="application/javascript" src="/js/vue.js" th:src="@{/js/vue.js}"></script>
+    <script type="application/javascript" src="/js/vue-resource.js" th:src="@{/js/vue-resource.js}"></script>
+    <script type="application/javascript" src="/element-ui/index.js" th:src="@{/element-ui/index.js}"></script>
+    <title>Title</title>
+    <style type="text/css">
+        *{
+            font: 13px/1.5 '微软雅黑', Verdana, Helvetica, Arial, sans-serif;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -box-sizing: border-box;
+            padding:0;
+            margin:0;
+            list-style:none;
+            box-sizing: border-box;
+        }
+
+        body,html{
+            height:100%;
+            overflow:hidden;
+        }
+        body{
+            background:url(/images/web_login_bg.jpg) no-repeat center;
+            background-size: cover;
+        }
+        a{
+            color:#27A9E3;
+            text-decoration:none;
+            cursor:pointer;
+        }
+        .login{
+            margin: 150px auto 0 auto;
+            min-height: 420px;
+            max-width: 420px;
+            padding: 40px;
+            background-color: #ffffff;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 4px;
+            /* overflow-x: hidden; */
+            box-sizing: border-box;
+        }
+        a.logo{
+            display: block;
+            height: 58px;
+            width: 167px;
+            margin: 0 auto 30px auto;
+            background-size: 167px 42px;
+        }
+        .message {
+            margin: 10px 0 0 -58px;
+            padding: 18px 10px 18px 60px;
+            background: #337AB7;
+            position: relative;
+            font: 14px '微软雅黑', Verdana, Helvetica, Arial, sans-serif;
+            color: #fff;
+            font-size: 16px;
+        }
+        #darkbannerwrap {
+            background: url(/images/aiwrap.png);
+            width: 18px;
+            height: 10px;
+            margin: 0 0 20px -58px;
+            position: relative;
+        }
+
+        hr.hr15 {
+            height: 15px;
+            border: none;
+            margin: 0px;
+            padding: 0px;
+            width: 100%;
+        }
+        hr.hr20 {
+            height: 20px;
+            border: none;
+            margin: 0px;
+            padding: 0px;
+            width: 100%;
+        }
+
+        .copyright{
+            font-size:14px;
+            color:rgba(255,255,255,0.85);
+            display:block;
+            position:absolute;
+            bottom:15px;
+            right:15px;
+        }
+        .form-control{
+            height:40px;}
+        .btn{
+            padding:10px 12px;
+            margin-top:30px;
+        }
+        .el-input-group__prepend
+        {
+            padding:0 10px;
+        }
+        :-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+            color: #000000; opacity:1;
+        }
+
+        ::-moz-placeholder { /* Mozilla Firefox 19+ */
+            color: #000000;opacity:1;
+        }
+
+        input:-ms-input-placeholder{
+            color: #000000;opacity:1;
+        }
+
+        input::-webkit-input-placeholder{
+            color: #000000;opacity:1;
+        }
+    </style>
+</head>
+<body>
+<div class="login" id="loginPanel">
+    <div class="message">Zookeeper管理后台</div>
+    <div id="darkbannerwrap"></div>
+    <el-form :inline="true" :rules="rules" :model="formLogin" ref="formLogin" class="demo-form-inline">
+        <el-form-item label="" prop="loginName">
+            <el-input v-model.trim="formLogin.loginName" style="width:340px;" clearable placeholder="登录账号">
+            </el-input>
+        </el-form-item>
+        <el-form-item label="" prop="loginPwd">
+            <el-input v-model.trim="formLogin.loginPwd" type="password" style="width:340px;" clearable placeholder="登录密码">
+            </el-input>
+        </el-form-item>
+        <el-form-item label="" prop="loginCode">
+            <el-input v-model.trim="formLogin.loginCode" style="width:170px;" clearable placeholder="验证码" @keyup.enter.native="login('formLogin')">
+            </el-input>
+            <img th:src="@{/validcode(r=${imgr})}" style="float:right;margin-left:20px;" width="130" height="40" id="kaptchaImage" @click="refreshvm" />
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" style="width:340px;background-color:#337AB7;" @click="login('formLogin')">登  录</el-button>
+        </el-form-item>
+    </el-form>
+</div>
+<div class="copyright">版权所有</div>
+</body>
+</html>
+<script type="application/javascript">
+    var loginVM=new Vue({
+        el:"#loginPanel",
+        data: {
+            loginurl:'/postlogin',
+            emulateJSON:false,
+            formLogin: {
+                loginName: '',
+                loginPwd: '',
+                loginCode: ''
+            },
+            rules:{
+                loginName:[{ required: true, message: '请输入登录账号', trigger: 'blur' },
+                    { min:2, max:20, message: '长度在 2 到 20 个字符', trigger: 'blur' }],
+                loginPwd:[{ required: true, message: '请输入密码', trigger: 'blur' }],
+                loginCode:[{ required: true, message: '请输入验证码', trigger: 'blur' },
+                    { min:4, max:4, message: '长度为4个字符', trigger: 'blur' }]
+            }
+        },
+        methods:{
+            login:function (formName) {
+                var isValidPass=true;
+                this.$refs[formName].validate(function (valid) {
+                    isValidPass=valid;
+                    if(!valid)
+                    {
+                        return false;
+                    }
+                });
+                if(!isValidPass)
+                {
+                    return false;
+                }
+                this.loadinglogin(true);
+                var loginData={"username":this.formLogin.loginName,"password":this.formLogin.loginPwd,"loginCode":this.formLogin.loginCode};
+                this.$http.post(this.loginurl,loginData).then(function(dataRet){
+                    var data=JSON.parse(dataRet.bodyText);
+                    if(data.result==true){
+                        this.loadinglogin(false);
+                        window.location="/main/index";
+                    }
+                    else{
+                        this.loadinglogin(false);
+                        this.refreshvm();
+                        $("#loginCode").val("");
+                        alert(data.msg);
+                    }
+                    //$(".myfadeloading").hide();
+                },function(){
+                    console.log('failed');
+                    this.loadinglogin(false);
+                    this.refreshvm();
+                });
+            },
+            refreshvm:function () {
+                $("#kaptchaImage").attr("src","/validcode?r="+(new Date()).getTime());
+            },
+            loadinglogin:function (tmpSwitch) {
+                const fullLoading = this.$loading({
+                    lock: true,
+                    text: '登录中...',
+                    spinner: 'el-icon-loading',
+                    background: 'rgba(0, 0, 0, 0.7)'
+                });
+                if(!tmpSwitch) {
+                    fullLoading.close();
+                }
+            }
+        }
+    });
+</script>

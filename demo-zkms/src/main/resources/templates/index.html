@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/element-ui/index.css" th:src="@{/element-ui/index.css}">
+    <script type="application/javascript" src="/js/jquery-3.3.1.min.js" th:src="@{/js/jquery-3.3.1.min.js}"></script>
+    <script type="application/javascript" src="/js/json2.js" th:src="@{/js/json2.js}"></script>
+    <script type="application/javascript" src="/js/vue.js" th:src="@{/js/vue.js}"></script>
+    <script type="application/javascript" src="/js/vue-resource.js" th:src="@{/js/vue-resource.js}"></script>
+    <script type="application/javascript" src="/element-ui/index.js" th:src="@{/element-ui/index.js}"></script>
+    <title>Zookeeper管理后台</title>
+    <style type="text/css">
+        *{padding: 0px;margin: 0px;}
+        .el-header {
+            background-color: #4E97D9;
+            color: #fff;
+            text-align: left;
+            height:50px;
+            line-height: 50px;
+            margin-bottom: 10px;
+        }
+        </style>
+</head>
+<body>
+<div id="indexPanel">
+    <el-container>
+        <el-header style="height:50px;">
+            <el-row :gutter="20">
+                <el-col :span="6">
+                    Zookeeper管理后台：
+                    <el-tag type="success" style="color: #ffffff;font-size: 16px;" th:text="${CurRootName}" id="tag-root-name">{{labRootNode}}</el-tag>
+                    <el-button type="success" icon="el-icon-plus" size="mini" @click="ShowAddDialog">新增节点</el-button>
+                </el-col>
+                <el-col :span="16">
+                    版本号：
+                        <el-select v-model="versionId"  style="width:100px;" size="mini" @change="changeVersionId">
+                            <el-option v-for="item in versionlist" :key="item.versionName" :label="item.versionName" :value="item.versionName"></el-option>
+                        </el-select>
+                        <el-button type="danger" icon="el-icon-plus" size="mini" @click="ShowVersionDialog">新建版本</el-button>
+                </el-col>
+                <el-col :span="2">
+                    <div style="width:100%;text-align: right;color: #ffffff;">
+                        <a href="javascript:void(0);" style="color:#ffffff;text-decoration: none;" onclick="if(window.confirm('确定退出登录吗？')){window.location='/login'}">退出登录</a>
+                    </div></el-col>
+            </el-row>
+        </el-header>
+    </el-container>
+    <el-dialog title="新增系统" :visible.sync="addDialog" :close-on-click-modal="false" @open="open()">
+        <el-form :model="formAdd" :inline="true" size="mini">
+            <el-input v-model.trim="formAdd.rootnode" style="width:300px;" id="txtrootnode" clearable placeholder="RootNode">
+                <template slot="prepend">{{formAdd.Prerootnode}}</template>
+            </el-input>
+            <el-button type="primary" icon="el-icon-success" @click="onSave">保存</el-button>
+        </el-form>
+    </el-dialog>
+    <el-dialog title="添加版本" :visible.sync="versionDialog" :close-on-click-modal="false" @open="open()">
+        <el-form :model="versionAdd" :inline="true" size="mini">
+            <el-input v-model.trim="versionAdd.nodename" style="width:300px;" clearable placeholder="NodeName">
+                <template slot="prepend">{{versionAdd.PreRootName}}</template>
+            </el-input>
+            <el-button type="primary" icon="el-icon-success" @click="onVersionSave">保存</el-button>
+        </el-form>
+    </el-dialog>
+    <el-row :gutter="20">
+        <el-col :span="5">
+            <div class="grid-content bg-purple">
+                <fieldset style="padding: 10px;margin-left: 10px;min-height:500px;border-radius:5px;">
+                    <legend>系统节点</legend>
+                <template>
+                    <el-table
+                            :data="tableData"
+                            @row-click="onRowClick"
+                            style="width: 100%">
+                        <el-table-column
+                                fixed
+                                prop="itemno"
+                                label="序号"
+                                width="150px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="itemname"
+                                label="节点">
+                        </el-table-column>
+                    </el-table>
+                </template>
+                </fieldset>
+            </div>
+        </el-col>
+        <el-col :span="5">
+            <div class="grid-content bg-purple">
+                <fieldset style="padding: 10px;margin-left: 10px;min-height:500px;border-radius:5px;">
+                    <legend>Group节点</legend>
+                <template>
+                    <el-table
+                            :data="groupData"
+                            @row-click="onGroupRowClick"
+                            style="width: 100%">
+                        <el-table-column
+                                fixed
+                                prop="itemno"
+                                label="序号"
+                                width="150px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="itemname"
+                                label="GroupName">
+                        </el-table-column>
+                    </el-table>
+                </template>
+                </fieldset>
+            </div>
+        </el-col>
+        <el-col :span="10">
+            <div class="grid-content bg-purple">
+                <fieldset style="padding: 10px;margin-left: 10px;min-height:500px;border-radius:5px;">
+                    <legend>属性列表</legend>
+                <template>
+                    <el-table
+                            :data="propertyData"
+                            style="width: 100%">
+                        <el-table-column
+                                fixed
+                                prop="itemno"
+                                label="序号"
+                                width="150px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="itemkey"
+                                label="Key">
+                        </el-table-column>
+                        <el-table-column
+                                prop="itemval"
+                                label="Value">
+                        </el-table-column>
+                    </el-table>
+                </template>
+                </fieldset>
+            </div>
+        </el-col>
+    </el-row>
+
+</div>
+</body>
+</html>
+<script type="application/javascript">
+    var vm=new Vue({
+        el:"#indexPanel",
+        data:{
+            addDialog:false,
+            versionDialog:false,
+            labRootNode:'',
+            versionId:'1.0.0',
+            PreRootName:'',
+            versionlist:[],
+            tableData:[],
+            groupData:[],
+            propertyData:[],
+            formSearch: {
+                rootname:''
+            },
+            formAdd:{
+                rootnode:'',
+                Prerootnode:''
+            },
+            versionAdd:{
+                PreRootName:'',
+                nodename:''
+            }
+        },
+        methods:{
+            onSearch:function (event) {
+
+            },
+            ShowAddDialog:function(){
+                this.addDialog=true;
+                this.formAdd.Prerootnode=this.labRootNode+"/"+this.versionId+"/";
+            },
+            ShowVersionDialog:function(){
+                if(this.versionAdd.PreRootName=="") {
+                    alert("请先选择节点！");
+                    return;
+                }
+                this.versionDialog=true;
+            },
+            onVersionSave:function(){
+                var sysRootNode=this.versionAdd.nodename;
+                if(sysRootNode==""||sysRootNode==undefined||sysRootNode==null)
+                {
+                    alert("节点名称不能为空！");
+                    return;
+                }
+                if(this.versionAdd.PreRootName=="")
+                {
+                    alert("请先选择节点！");
+                    return;
+                }
+                sysRootNode=this.versionAdd.PreRootName+sysRootNode;
+                this.$http.post("/main/add",{"rootNodeName":sysRootNode},{emulateJSON: true}).then(function(res){
+                    if(parseInt(res.bodyText)>0)
+                    {
+                        alert("添加成功");
+                        this.loadData();
+                        this.addDialog=false;
+                        this.versionDialog=false;
+                    }
+                    else
+                    {
+                        alert(res.bodyText);
+                    }
+                },function(){
+                    alert("同步失败！");
+                });
+            },
+            onGroupRowClick:function(row, event, column){
+                //加载属性列表
+                var proPath=this.labRootNode+"/"+this.versionId+"/"+row.itemname;
+                this.$http.post("/main/proplist?nodePath="+proPath).then(function(res){
+                    var tData=new Array();
+                    var itemJson=JSON.parse(res.bodyText);
+                    for(var item in itemJson) {
+                        tData.push({"itemno":parseInt(item)+1, "itemkey":itemJson[item].key,"itemval":itemJson[item].value});
+                    }
+                    this.propertyData=tData;
+                },function(){
+                    alert("同步失败！");
+                });
+            },
+            onRowClick:function(row, event, column){
+                this.labRootNode=row.itemname;
+                this.versionAdd.PreRootName=row.itemname+"/";
+                //加载版本号
+                this.$http.post("/main/alllist?rootName="+row.itemname).then(function(res){
+                    var tData=new Array();
+                    var itemJson=JSON.parse(res.bodyText);
+                    for(var item in itemJson) {
+                        tData.push({"id":parseInt(item)+1, "versionName":itemJson[item]});
+                    }
+                    this.versionlist=tData;
+                },function(){
+                    alert("同步失败！");
+                });
+                //加载Group
+                var groupName=row.itemname+"/"+this.versionId;
+                this.$http.post("/main/alllist?rootName="+groupName).then(function(res){
+                    var tData=new Array();
+                    var itemJson=JSON.parse(res.bodyText);
+                    for(var item in itemJson) {
+                        tData.push({"itemno":parseInt(item)+1, "itemname":itemJson[item]});
+                    }
+                    this.groupData=tData;
+                },function(){
+                    alert("同步失败！");
+                });
+            },
+            onSave:function(){
+                var sysRootNode=this.formAdd.rootnode;
+                if(sysRootNode==""||sysRootNode==undefined||sysRootNode==null)
+                {
+                    alert("节点名称不能为空！");
+                    return;
+                }
+                this.$http.post("/main/add",{"rootNodeName":sysRootNode},{emulateJSON: true}).then(function(res){
+                    if(parseInt(res.bodyText)>0)
+                    {
+                        alert("添加成功");
+                        this.loadData();
+                        this.addDialog=false;
+                    }
+                    else
+                    {
+                        alert(res.bodyText);
+                    }
+                },function(){
+                    alert("同步失败！");
+                });
+            },
+            changeVersionId:function (objItem) {
+                this.versionAdd.PreRootName=this.labRootNode+"/";
+                //加载Group
+                var groupName=this.labRootNode+"/"+objItem;
+                this.$http.post("/main/alllist?rootName="+groupName).then(function(res){
+                    var tData=new Array();
+                    var itemJson=JSON.parse(res.bodyText);
+                    for(var item in itemJson) {
+                        tData.push({"itemno":parseInt(item)+1, "itemname":itemJson[item]});
+                    }
+                    this.groupData=tData;
+                    this.propertyData=null;
+                },function(){
+                    alert("同步失败！");
+                });
+            },
+            open:function (event2) {
+                this.formAdd.rootnode="";
+            },
+            loadData:function () {
+                this.$http.post("/main/alllist?rootName=/").then(function (res) {
+                    var tData = new Array();
+                    var itemJson = JSON.parse(res.bodyText);
+                    for (var item in itemJson) {
+                        tData.push({"itemno": parseInt(item) + 1, "itemname": "/" + itemJson[item]});
+                    }
+                    this.tableData = tData;
+
+                }, function () {
+                    alert("同步失败！");
+                });
+                //加载
+                this.labRootNode=$("#tag-root-name").text();
+            }
+        }
+    });
+    vm.loadData();
+</script>
