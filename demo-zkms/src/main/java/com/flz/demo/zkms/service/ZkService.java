@@ -11,4 +11,6 @@ public interface ZkService {
     List<String> getList(String nodeName);
     String getNodeVal(String rootNode);
     List<ZkEntity> getPropertyList(String nodeName);
+    boolean deleteProperty(String propPath);
+    boolean updateProperty(String propPath,String value);
 }

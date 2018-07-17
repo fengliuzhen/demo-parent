@@ -19,6 +19,9 @@
             line-height: 50px;
             margin-bottom: 10px;
         }
+        .el-input__inner{
+            width:200px;
+        }
         </style>
 </head>
 <body>
@@ -69,6 +72,7 @@
                 <template>
                     <el-table
                             :data="tableData"
+                            highlight-current-row
                             @row-click="onRowClick"
                             style="width: 100%">
                         <el-table-column
@@ -93,6 +97,7 @@
                 <template>
                     <el-table
                             :data="groupData"
+                            highlight-current-row
                             @row-click="onGroupRowClick"
                             style="width: 100%">
                         <el-table-column
@@ -105,6 +110,7 @@
                                 prop="itemname"
                                 label="GroupName">
                         </el-table-column>
+
                     </el-table>
                 </template>
                 </fieldset>
@@ -114,9 +120,18 @@
             <div class="grid-content bg-purple">
                 <fieldset style="padding: 10px;margin-left: 10px;min-height:500px;border-radius:5px;">
                     <legend>属性列表</legend>
+                    <el-form :model="propertyAdd" :inline="true" size="mini">
+                        <el-input v-model.trim="propertyAdd.key" style="width:260px;" clearable placeholder="Key">
+                            <template slot="prepend">{{propertyAdd.PreRootName}}</template>
+                        </el-input>
+                        <el-input v-model.trim="propertyAdd.val" style="width:200px;" clearable placeholder="Value">
+                        </el-input>
+                        <el-button type="primary" icon="el-icon-success" @click="onPropertySave">添加</el-button>
+                    </el-form>
                 <template>
                     <el-table
                             :data="propertyData"
+                            highlight-current-row
                             style="width: 100%">
                         <el-table-column
                                 fixed
@@ -131,6 +146,14 @@
                         <el-table-column
                                 prop="itemval"
                                 label="Value">
+                        </el-table-column>
+                        <el-table-column
+                                width="150px"
+                                label="操作">
+                            <template slot-scope="scope">
+                                <el-button icon="el-icon-edit" size="mini" circle @click="editPropItem(scope.$index, scope.row.itemkey)"></el-button>
+                                <el-button icon="el-icon-delete" size="mini" circle @click="delPropItem(scope.$index, scope.row.itemkey)"></el-button>
+                            </template>
                         </el-table-column>
                     </el-table>
                 </template>
@@ -152,9 +175,15 @@
             versionId:'1.0.0',
             PreRootName:'',
             versionlist:[],
+            currentGroupRow:null,
             tableData:[],
             groupData:[],
             propertyData:[],
+            propertyAdd:{
+                key:'',
+                val:'',
+                PreRootName:''
+            },
             formSearch: {
                 rootname:''
             },
@@ -168,9 +197,6 @@
             }
         },
         methods:{
-            onSearch:function (event) {
-
-            },
             ShowAddDialog:function(){
                 this.addDialog=true;
                 this.formAdd.Prerootnode=this.labRootNode+"/"+this.versionId+"/";
@@ -212,15 +238,39 @@
                 });
             },
             onGroupRowClick:function(row, event, column){
-                //加载属性列表
-                var proPath=this.labRootNode+"/"+this.versionId+"/"+row.itemname;
-                this.$http.post("/main/proplist?nodePath="+proPath).then(function(res){
-                    var tData=new Array();
-                    var itemJson=JSON.parse(res.bodyText);
-                    for(var item in itemJson) {
-                        tData.push({"itemno":parseInt(item)+1, "itemkey":itemJson[item].key,"itemval":itemJson[item].value});
+                this.currentGroupRow=row.itemname;
+                this.propertyAdd.PreRootName=this.labRootNode+"/"+this.versionId+"/"+this.currentGroupRow+"/";
+                this.loadPropertyData(row.itemname);
+            },
+            onPropertySave:function(){
+                var tmpPropKey=this.propertyAdd.key;
+                var tmpPropVal=this.propertyAdd.val;
+                if(tmpPropKey==""||tmpPropKey==undefined||tmpPropKey==null)
+                {
+                    alert("属性Key不能为空！");
+                    return;
+                }
+                else
+                {
+                    tmpPropKey=this.propertyAdd.PreRootName+tmpPropKey;
+                }
+                if(tmpPropVal==""||tmpPropVal==undefined||tmpPropVal==null)
+                {
+                    alert("属性Value不能为空！");
+                    return;
+                }
+                this.$http.post("/main/update",{"nodeName":tmpPropKey,"value":tmpPropVal},{emulateJSON: true}).then(function(res){
+                    if(parseInt(res.bodyText)>0)
+                    {
+                        alert("添加成功");
+                        this.propertyAdd.key="";
+                        this.propertyAdd.val="";
+                        this.loadPropertyData(this.currentGroupRow);
                     }
-                    this.propertyData=tData;
+                    else
+                    {
+                        alert(res.bodyText);
+                    }
                 },function(){
                     alert("同步失败！");
                 });
@@ -290,6 +340,25 @@
                     alert("同步失败！");
                 });
             },
+            editPropItem:function(row_index,row_key){
+
+            },
+            delPropItem:function(row_index,row_key){
+                if(window.confirm("确定要删除属性吗？")) {
+                    var propPath = this.labRootNode + "/" + this.versionId + "/" + this.currentGroupRow + "/" + row_key;
+                    this.$http.post("/main/del", {"nodeName": propPath}, {emulateJSON: true}).then(function (res) {
+                        if (parseInt(res.bodyText) > 0) {
+                            alert("删除成功");
+                            this.loadPropertyData(this.currentGroupRow);
+                        }
+                        else {
+                            alert(res.bodyText);
+                        }
+                    }, function () {
+                        alert("同步失败！");
+                    });
+                }
+            },
             open:function (event2) {
                 this.formAdd.rootnode="";
             },
@@ -307,6 +376,20 @@
                 });
                 //加载
                 this.labRootNode=$("#tag-root-name").text();
+            },
+            loadPropertyData:function (groupNode) {
+                //加载属性列表
+                var proPath=this.labRootNode+"/"+this.versionId+"/"+groupNode;
+                this.$http.post("/main/proplist?nodePath="+proPath).then(function(res){
+                    var tData=new Array();
+                    var itemJson=JSON.parse(res.bodyText);
+                    for(var item in itemJson) {
+                        tData.push({"itemno":parseInt(item)+1, "itemkey":itemJson[item].key,"itemval":itemJson[item].value});
+                    }
+                    this.propertyData=tData;
+                },function(){
+                    alert("同步失败！");
+                });
             }
         }
     });

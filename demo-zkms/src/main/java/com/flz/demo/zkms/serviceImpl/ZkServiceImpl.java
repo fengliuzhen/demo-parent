@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.swing.text.StyledEditorKit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -127,5 +126,39 @@ public class ZkServiceImpl implements ZkService {
             zkEntities.add(zkEntity);
         }
         return zkEntities;
+    }
+
+    @Override
+    public boolean deleteProperty(String propPath) {
+        log.debug("Delete property: [{}]", propPath);
+        try {
+            Stat stat = curatorFramework.checkExists().forPath(propPath);
+            if (stat != null) {
+                curatorFramework.delete().deletingChildrenIfNeeded().forPath(propPath);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean updateProperty(String propPath, String value) {
+        log.debug("Update property: [{}] = [{}]", propPath, value);
+        boolean suc = false;
+        try {
+            Stat stat = curatorFramework.checkExists().forPath(propPath);
+            if (stat != null) {
+                Stat opResult = curatorFramework.setData().forPath(propPath, value.getBytes(Charsets.UTF_8));
+                suc = opResult != null;
+            } else {
+                String opResult = curatorFramework.create().creatingParentsIfNeeded().forPath(propPath, value.getBytes(Charsets.UTF_8));
+                suc = Objects.equals(propPath, opResult);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return suc;
     }
 }

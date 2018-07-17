@@ -63,4 +63,20 @@ public class IndexController {
         List<ZkEntity> zkList=zkService.getPropertyList(nodePath);
         return zkList;
     }
+    @RequestMapping(value ="/del")
+    @ResponseBody
+    public String delRootNode(@RequestParam(value="nodeName")String nodeName)
+    {
+        //安全删除属性
+        boolean ret=zkService.deleteProperty(nodeName);
+        return ret?"1":"0";
+    }
+    @RequestMapping(value ="/update")
+    @ResponseBody
+    public String updateRootNode(@RequestParam(value="nodeName")String nodeName,@RequestParam(value="value")String value)
+    {
+        //修改属性值 ，如果属性节点不存在 重新创建
+        boolean ret=zkService.updateProperty(nodeName,value);
+        return ret?"1":"0";
+    }
 }
