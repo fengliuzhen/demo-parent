@@ -13,17 +13,19 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/main")
-public class IndexController {
+public class IndexController extends BaseController {
 
     @Autowired
     private ZkService zkService;
 
     @RequestMapping("/index")
-    public ModelAndView index(ModelAndView model, HttpServletRequest request, HttpServletResponse response)
+    public ModelAndView index(ModelAndView model)
     {
         HttpSession httpSession=request.getSession();
         Object sid=httpSession.getAttribute(httpSession.getId());
@@ -34,13 +36,38 @@ public class IndexController {
 
     @RequestMapping(value ="/add")
     @ResponseBody
+    public String addNode(@RequestParam(value="rootNodeName")String rootNode)
+    {
+        //用 “/” 分隔rootNode
+        boolean ret=zkService.createRootNode(rootNode,null);
+        return ret?"1":"0";
+    }
+    @RequestMapping(value ="/addroot")
+    @ResponseBody
     public String addRootNode(@RequestParam(value="rootNodeName")String rootNode)
     {
         //用 “/” 分隔rootNode
         boolean ret=zkService.createRootNode(rootNode,"111111");
         return ret?"1":"0";
     }
-
+    @RequestMapping("/deflist")
+    @ResponseBody
+    public List<String> getDefList()
+    {
+        HttpSession httpSession=request.getSession();
+        Object sid=httpSession.getAttribute(httpSession.getId());
+        if(Objects.equals(sid.toString().toUpperCase(),"ADMIN")) {
+            sid = "/";
+            List<String> list = zkService.getList(sid.toString());
+            return list;
+        }
+        else
+        {
+            List<String> list =new ArrayList<>();
+            list.add(sid.toString().substring(1));
+            return list;
+        }
+    }
     @RequestMapping("/alllist")
     @ResponseBody
     public List<String> getAllList(String rootName)

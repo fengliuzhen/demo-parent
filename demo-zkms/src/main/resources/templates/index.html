@@ -19,7 +19,7 @@
             line-height: 50px;
             margin-bottom: 10px;
         }
-        .el-input__inner{
+        #txtpropkey{
             width:200px;
         }
         </style>
@@ -32,7 +32,7 @@
                 <el-col :span="6">
                     Zookeeper管理后台：
                     <el-tag type="success" style="color: #ffffff;font-size: 16px;" th:text="${CurRootName}" id="tag-root-name">{{labRootNode}}</el-tag>
-                    <el-button type="success" icon="el-icon-plus" size="mini" @click="ShowAddDialog">新增节点</el-button>
+                    <el-button type="success" icon="el-icon-plus" size="mini" th:@click="${CurRootName=='admin'?'ShowAddDialog':''}" th:style="${CurRootName=='admin'?'':'display:none;'}" th:text="${CurRootName=='admin'?'新增系统':''}"></el-button>
                 </el-col>
                 <el-col :span="16">
                     版本号：
@@ -51,7 +51,7 @@
     <el-dialog title="新增系统" :visible.sync="addDialog" :close-on-click-modal="false" @open="open()">
         <el-form :model="formAdd" :inline="true" size="mini">
             <el-input v-model.trim="formAdd.rootnode" style="width:300px;" id="txtrootnode" clearable placeholder="RootNode">
-                <template slot="prepend">{{formAdd.Prerootnode}}</template>
+                <template slot="prepend">/</template>
             </el-input>
             <el-button type="primary" icon="el-icon-success" @click="onSave">保存</el-button>
         </el-form>
@@ -64,7 +64,7 @@
             <el-button type="primary" icon="el-icon-success" @click="onVersionSave">保存</el-button>
         </el-form>
     </el-dialog>
-    <el-row :gutter="20">
+    <el-row :gutter="20" style="margin:0px;">
         <el-col :span="5">
             <div class="grid-content bg-purple">
                 <fieldset style="padding: 10px;margin-left: 10px;min-height:500px;border-radius:5px;">
@@ -93,7 +93,13 @@
         <el-col :span="5">
             <div class="grid-content bg-purple">
                 <fieldset style="padding: 10px;margin-left: 10px;min-height:500px;border-radius:5px;">
-                    <legend>Group节点</legend>
+                    <legend>Group列表</legend>
+                    <el-form :model="groupAdd" :inline="true">
+                        <el-input v-model.trim="groupAdd.groupname" id="txtgroupname" size="mini" style="width:260px;" clearable placeholder="GroupName">
+                            <template slot="prepend">{{groupAdd.PreRootName}}</template>
+                        </el-input>
+                        <el-button type="primary" icon="el-icon-success" size="mini" @click="onGroupSave">保存</el-button>
+                    </el-form>
                 <template>
                     <el-table
                             :data="groupData"
@@ -110,7 +116,12 @@
                                 prop="itemname"
                                 label="GroupName">
                         </el-table-column>
-
+                        <el-table-column
+                                label="操作">
+                            <template slot-scope="scope">
+                                <el-button icon="el-icon-delete" size="mini" circle @click="delGroupItem(scope.$index, scope.row.itemname)"></el-button>
+                            </template>
+                        </el-table-column>
                     </el-table>
                 </template>
                 </fieldset>
@@ -120,13 +131,13 @@
             <div class="grid-content bg-purple">
                 <fieldset style="padding: 10px;margin-left: 10px;min-height:500px;border-radius:5px;">
                     <legend>属性列表</legend>
-                    <el-form :model="propertyAdd" :inline="true" size="mini">
-                        <el-input v-model.trim="propertyAdd.key" style="width:260px;" clearable placeholder="Key">
+                    <el-form :model="propertyAdd" :inline="true">
+                        <el-input v-model.trim="propertyAdd.key" id="txtpropkey" size="mini" style="width:260px;" clearable placeholder="Key">
                             <template slot="prepend">{{propertyAdd.PreRootName}}</template>
                         </el-input>
-                        <el-input v-model.trim="propertyAdd.val" style="width:200px;" clearable placeholder="Value">
+                        <el-input v-model.trim="propertyAdd.val" size="mini" style="width:200px;" clearable placeholder="Value">
                         </el-input>
-                        <el-button type="primary" icon="el-icon-success" @click="onPropertySave">添加</el-button>
+                        <el-button type="primary" icon="el-icon-success" size="mini" @click="onPropertySave">保存</el-button>
                     </el-form>
                 <template>
                     <el-table
@@ -151,7 +162,7 @@
                                 width="150px"
                                 label="操作">
                             <template slot-scope="scope">
-                                <el-button icon="el-icon-edit" size="mini" circle @click="editPropItem(scope.$index, scope.row.itemkey)"></el-button>
+                                <el-button icon="el-icon-edit" size="mini" circle @click="editPropItem(scope.$index, scope.row.itemkey, scope.row.itemval)"></el-button>
                                 <el-button icon="el-icon-delete" size="mini" circle @click="delPropItem(scope.$index, scope.row.itemkey)"></el-button>
                             </template>
                         </el-table-column>
@@ -179,6 +190,10 @@
             tableData:[],
             groupData:[],
             propertyData:[],
+            groupAdd:{
+                groupname:'',
+                PreRootName:''
+            },
             propertyAdd:{
                 key:'',
                 val:'',
@@ -188,8 +203,7 @@
                 rootname:''
             },
             formAdd:{
-                rootnode:'',
-                Prerootnode:''
+                rootnode:''
             },
             versionAdd:{
                 PreRootName:'',
@@ -199,7 +213,7 @@
         methods:{
             ShowAddDialog:function(){
                 this.addDialog=true;
-                this.formAdd.Prerootnode=this.labRootNode+"/"+this.versionId+"/";
+                //this.formAdd.Prerootnode=this.labRootNode+"/"+this.versionId+"/";
             },
             ShowVersionDialog:function(){
                 if(this.versionAdd.PreRootName=="") {
@@ -243,6 +257,12 @@
                 this.loadPropertyData(row.itemname);
             },
             onPropertySave:function(){
+                //判断是否选择了group
+                if(this.currentGroupRow==''||this.currentGroupRow==null||this.currentGroupRow==undefined)
+                {
+                    alert("请选择Group节点");
+                    return;
+                }
                 var tmpPropKey=this.propertyAdd.key;
                 var tmpPropVal=this.propertyAdd.val;
                 if(tmpPropKey==""||tmpPropKey==undefined||tmpPropKey==null)
@@ -262,7 +282,7 @@
                 this.$http.post("/main/update",{"nodeName":tmpPropKey,"value":tmpPropVal},{emulateJSON: true}).then(function(res){
                     if(parseInt(res.bodyText)>0)
                     {
-                        alert("添加成功");
+                        alert("操作成功");
                         this.propertyAdd.key="";
                         this.propertyAdd.val="";
                         this.loadPropertyData(this.currentGroupRow);
@@ -278,6 +298,10 @@
             onRowClick:function(row, event, column){
                 this.labRootNode=row.itemname;
                 this.versionAdd.PreRootName=row.itemname+"/";
+                this.groupAdd.PreRootName=row.itemname+"/"+this.versionId+"/";
+                this.groupData=null;
+                this.propertyData=null;
+                this.propertyAdd.PreRootName="";
                 //加载版本号
                 this.$http.post("/main/alllist?rootName="+row.itemname).then(function(res){
                     var tData=new Array();
@@ -290,14 +314,30 @@
                     alert("同步失败！");
                 });
                 //加载Group
-                var groupName=row.itemname+"/"+this.versionId;
-                this.$http.post("/main/alllist?rootName="+groupName).then(function(res){
-                    var tData=new Array();
-                    var itemJson=JSON.parse(res.bodyText);
-                    for(var item in itemJson) {
-                        tData.push({"itemno":parseInt(item)+1, "itemname":itemJson[item]});
+                this.loadGroupData();
+            },
+            onGroupSave:function(){
+                if(this.labRootNode==''||this.labRootNode==null||this.labRootNode==undefined)
+                {
+                    alert("请选择Group节点");
+                    return;
+                }
+                var nodePath=this.labRootNode+"/"+this.versionId+"/"+this.groupAdd.groupname;
+                if(this.groupAdd.groupname==""||this.groupAdd.groupname==undefined||this.groupAdd.groupname==null)
+                {
+                    alert("Group名称不能为空！");
+                    return;
+                }
+                this.$http.post("/main/add",{"rootNodeName":nodePath},{emulateJSON: true}).then(function(res){
+                    if(parseInt(res.bodyText)>0)
+                    {
+                        alert("保存成功");
+                        this.loadGroupData();
                     }
-                    this.groupData=tData;
+                    else
+                    {
+                        alert("名称已存在");
+                    }
                 },function(){
                     alert("同步失败！");
                 });
@@ -309,7 +349,7 @@
                     alert("节点名称不能为空！");
                     return;
                 }
-                this.$http.post("/main/add",{"rootNodeName":sysRootNode},{emulateJSON: true}).then(function(res){
+                this.$http.post("/main/addroot",{"rootNodeName":"/"+sysRootNode},{emulateJSON: true}).then(function(res){
                     if(parseInt(res.bodyText)>0)
                     {
                         alert("添加成功");
@@ -318,7 +358,7 @@
                     }
                     else
                     {
-                        alert(res.bodyText);
+                        alert("名称已存在");
                     }
                 },function(){
                     alert("同步失败！");
@@ -326,22 +366,14 @@
             },
             changeVersionId:function (objItem) {
                 this.versionAdd.PreRootName=this.labRootNode+"/";
-                //加载Group
-                var groupName=this.labRootNode+"/"+objItem;
-                this.$http.post("/main/alllist?rootName="+groupName).then(function(res){
-                    var tData=new Array();
-                    var itemJson=JSON.parse(res.bodyText);
-                    for(var item in itemJson) {
-                        tData.push({"itemno":parseInt(item)+1, "itemname":itemJson[item]});
-                    }
-                    this.groupData=tData;
-                    this.propertyData=null;
-                },function(){
-                    alert("同步失败！");
-                });
+                this.groupAdd.PreRootName=this.labRootNode+"/"+objItem+"/";
+                this.propertyAdd.PreRootName=this.labRootNode+"/"+objItem+"/"+this.currentGroupRow;
+                this.versionId=objItem;
+                this.loadGroupData();
             },
-            editPropItem:function(row_index,row_key){
-
+            editPropItem:function(row_index,row_key,row_val){
+                this.propertyAdd.key=row_key;
+                this.propertyAdd.val=row_val;
             },
             delPropItem:function(row_index,row_key){
                 if(window.confirm("确定要删除属性吗？")) {
@@ -359,11 +391,27 @@
                     });
                 }
             },
+            delGroupItem:function(row_index,row_key){
+                if(window.confirm("此操作会删除Group下所有节点，确定要删除吗？")) {
+                    var propPath = this.labRootNode + "/" + this.versionId + "/" + row_key;
+                    this.$http.post("/main/del", {"nodeName": propPath}, {emulateJSON: true}).then(function (res) {
+                        if (parseInt(res.bodyText) > 0) {
+                            alert("删除成功");
+                            this.loadGroupData();
+                        }
+                        else {
+                            alert(res.bodyText);
+                        }
+                    }, function () {
+                        alert("同步失败！");
+                    });
+                }
+            },
             open:function (event2) {
                 this.formAdd.rootnode="";
             },
             loadData:function () {
-                this.$http.post("/main/alllist?rootName=/").then(function (res) {
+                this.$http.post("/main/deflist").then(function (res) {
                     var tData = new Array();
                     var itemJson = JSON.parse(res.bodyText);
                     for (var item in itemJson) {
@@ -376,6 +424,21 @@
                 });
                 //加载
                 this.labRootNode=$("#tag-root-name").text();
+            },
+            loadGroupData:function(){
+                var groupName=this.labRootNode+"/"+this.versionId;
+                this.$http.post("/main/alllist?rootName="+groupName).then(function(res){
+                    var tData=new Array();
+                    var itemJson=JSON.parse(res.bodyText);
+                    for(var item in itemJson) {
+                        tData.push({"itemno":parseInt(item)+1, "itemname":itemJson[item]});
+                    }
+                    this.groupData=tData;
+                    this.propertyData=null;
+                    this.propertyAdd.PreRootName="";
+                },function(){
+                    alert("同步失败！");
+                });
             },
             loadPropertyData:function (groupNode) {
                 //加载属性列表
