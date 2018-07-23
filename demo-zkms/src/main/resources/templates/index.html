@@ -34,14 +34,14 @@
                     <el-tag type="success" style="color: #ffffff;font-size: 16px;" th:text="${CurRootName}" id="tag-root-name">{{labRootNode}}</el-tag>
                     <el-button type="success" icon="el-icon-plus" size="mini" th:@click="${CurRootName=='admin'?'ShowAddDialog':''}" th:style="${CurRootName=='admin'?'':'display:none;'}" th:text="${CurRootName=='admin'?'新增系统':''}"></el-button>
                 </el-col>
-                <el-col :span="16">
+                <!--<el-col :span="16" style="display: none;">
                     版本号：
-                        <el-select v-model="versionId"  style="width:100px;" size="mini" @change="changeVersionId">
+                        <el-select v-model="versionId"  style="width:100px;display: none;" size="mini" @change="changeVersionId">
                             <el-option v-for="item in versionlist" :key="item.versionName" :label="item.versionName" :value="item.versionName"></el-option>
                         </el-select>
-                        <el-button type="danger" icon="el-icon-plus" size="mini" @click="ShowVersionDialog">新建版本</el-button>
-                </el-col>
-                <el-col :span="2">
+                        <el-button type="danger" icon="el-icon-plus" size="mini" @click="ShowVersionDialog" style="display: none;">新建版本</el-button>
+                </el-col>-->
+                <el-col :span="18">
                     <div style="width:100%;text-align: right;color: #ffffff;">
                         <a href="javascript:void(0);" style="color:#ffffff;text-decoration: none;" onclick="if(window.confirm('确定退出登录吗？')){window.location='/login'}">退出登录</a>
                     </div></el-col>
@@ -68,7 +68,7 @@
         <el-col :span="5">
             <div class="grid-content bg-purple">
                 <fieldset style="padding: 10px;margin-left: 10px;min-height:500px;border-radius:5px;">
-                    <legend>系统节点</legend>
+                    <legend>Root节点</legend>
                 <template>
                     <el-table
                             :data="tableData"
@@ -93,7 +93,7 @@
         <el-col :span="5">
             <div class="grid-content bg-purple">
                 <fieldset style="padding: 10px;margin-left: 10px;min-height:500px;border-radius:5px;">
-                    <legend>Group列表</legend>
+                    <legend>系统列表</legend>
                     <el-form :model="groupAdd" :inline="true">
                         <el-input v-model.trim="groupAdd.groupname" id="txtgroupname" size="mini" style="width:260px;" clearable placeholder="GroupName">
                             <template slot="prepend">{{groupAdd.PreRootName}}</template>
@@ -183,7 +183,7 @@
             addDialog:false,
             versionDialog:false,
             labRootNode:'',
-            versionId:'1.0.0',
+            //versionId:'1.0.0',
             PreRootName:'',
             versionlist:[],
             currentGroupRow:null,
@@ -213,7 +213,7 @@
         methods:{
             ShowAddDialog:function(){
                 this.addDialog=true;
-                //this.formAdd.Prerootnode=this.labRootNode+"/"+this.versionId+"/";
+                //this.formAdd.Prerootnode=this.labRootNode+"/";
             },
             ShowVersionDialog:function(){
                 if(this.versionAdd.PreRootName=="") {
@@ -253,7 +253,7 @@
             },
             onGroupRowClick:function(row, event, column){
                 this.currentGroupRow=row.itemname;
-                this.propertyAdd.PreRootName=this.labRootNode+"/"+this.versionId+"/"+this.currentGroupRow+"/";
+                this.propertyAdd.PreRootName=this.labRootNode+"/"+this.currentGroupRow+"/";
                 this.loadPropertyData(row.itemname);
             },
             onPropertySave:function(){
@@ -296,24 +296,9 @@
                 });
             },
             onRowClick:function(row, event, column){
-                this.labRootNode=row.itemname;
-                this.versionAdd.PreRootName=row.itemname+"/";
-                this.groupAdd.PreRootName=row.itemname+"/"+this.versionId+"/";
-                this.groupData=null;
-                this.propertyData=null;
+                this.labRootNode=row.itemname
+                this.groupAdd.PreRootName=row.itemname+"/";
                 this.propertyAdd.PreRootName="";
-                //加载版本号
-                this.$http.post("/main/alllist?rootName="+row.itemname).then(function(res){
-                    var tData=new Array();
-                    var itemJson=JSON.parse(res.bodyText);
-                    for(var item in itemJson) {
-                        tData.push({"id":parseInt(item)+1, "versionName":itemJson[item]});
-                    }
-                    this.versionlist=tData;
-                },function(){
-                    alert("同步失败！");
-                });
-                //加载Group
                 this.loadGroupData();
             },
             onGroupSave:function(){
@@ -322,7 +307,7 @@
                     alert("请选择Group节点");
                     return;
                 }
-                var nodePath=this.labRootNode+"/"+this.versionId+"/"+this.groupAdd.groupname;
+                var nodePath=this.labRootNode+"/"+this.groupAdd.groupname;
                 if(this.groupAdd.groupname==""||this.groupAdd.groupname==undefined||this.groupAdd.groupname==null)
                 {
                     alert("Group名称不能为空！");
@@ -332,6 +317,7 @@
                     if(parseInt(res.bodyText)>0)
                     {
                         alert("保存成功");
+                        this.groupAdd.groupname="";
                         this.loadGroupData();
                     }
                     else
@@ -377,7 +363,7 @@
             },
             delPropItem:function(row_index,row_key){
                 if(window.confirm("确定要删除属性吗？")) {
-                    var propPath = this.labRootNode + "/" + this.versionId + "/" + this.currentGroupRow + "/" + row_key;
+                    var propPath = this.labRootNode + "/" + this.currentGroupRow + "/" + row_key;
                     this.$http.post("/main/del", {"nodeName": propPath}, {emulateJSON: true}).then(function (res) {
                         if (parseInt(res.bodyText) > 0) {
                             alert("删除成功");
@@ -387,13 +373,13 @@
                             alert(res.bodyText);
                         }
                     }, function () {
-                        alert("同步失败！");
+                        alert("delPropItem同步失败！");
                     });
                 }
             },
             delGroupItem:function(row_index,row_key){
                 if(window.confirm("此操作会删除Group下所有节点，确定要删除吗？")) {
-                    var propPath = this.labRootNode + "/" + this.versionId + "/" + row_key;
+                    var propPath = this.labRootNode + "/"+ row_key;
                     this.$http.post("/main/del", {"nodeName": propPath}, {emulateJSON: true}).then(function (res) {
                         if (parseInt(res.bodyText) > 0) {
                             alert("删除成功");
@@ -403,7 +389,7 @@
                             alert(res.bodyText);
                         }
                     }, function () {
-                        alert("同步失败！");
+                        alert("delGroupItem同步失败！");
                     });
                 }
             },
@@ -420,13 +406,13 @@
                     this.tableData = tData;
 
                 }, function () {
-                    alert("同步失败！");
+                    alert("loadData同步失败！");
                 });
                 //加载
                 this.labRootNode=$("#tag-root-name").text();
             },
             loadGroupData:function(){
-                var groupName=this.labRootNode+"/"+this.versionId;
+                var groupName=this.labRootNode;
                 this.$http.post("/main/alllist?rootName="+groupName).then(function(res){
                     var tData=new Array();
                     var itemJson=JSON.parse(res.bodyText);
@@ -437,12 +423,12 @@
                     this.propertyData=null;
                     this.propertyAdd.PreRootName="";
                 },function(){
-                    alert("同步失败！");
+                    alert("loadGroupData同步失败！");
                 });
             },
             loadPropertyData:function (groupNode) {
                 //加载属性列表
-                var proPath=this.labRootNode+"/"+this.versionId+"/"+groupNode;
+                var proPath=this.labRootNode+"/"+groupNode;
                 this.$http.post("/main/proplist?nodePath="+proPath).then(function(res){
                     var tData=new Array();
                     var itemJson=JSON.parse(res.bodyText);
@@ -451,7 +437,7 @@
                     }
                     this.propertyData=tData;
                 },function(){
-                    alert("同步失败！");
+                    alert("loadPropertyData同步失败！");
                 });
             }
         }

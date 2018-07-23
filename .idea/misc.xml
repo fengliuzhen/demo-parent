@@ -14,6 +14,7 @@
         <option value="$PROJECT_DIR$/demo-api-package/pom.xml" />
         <option value="$PROJECT_DIR$/demo-quartz/pom.xml" />
         <option value="$PROJECT_DIR$/demo-zkms/pom.xml" />
+        <option value="$PROJECT_DIR$/demo-config/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

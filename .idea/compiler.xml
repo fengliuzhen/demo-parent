@@ -9,6 +9,7 @@
         <module name="demo-admin" />
         <module name="demo-api" />
         <module name="demo-common" />
+        <module name="demo-config" />
         <module name="demo-dao" />
         <module name="demo-entity" />
         <module name="demo-eureka" />
