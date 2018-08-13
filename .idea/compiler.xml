@@ -15,10 +15,14 @@
         <module name="demo-eureka" />
         <module name="demo-gateway" />
         <module name="demo-job" />
+        <module name="demo-monitor" />
         <module name="demo-producer" />
         <module name="demo-quartz" />
+        <module name="demo-ribbon" />
+        <module name="demo-search" />
         <module name="demo-service" />
         <module name="demo-service-impl" />
+        <module name="demo-test" />
         <module name="demo-zkms" />
       </profile>
     </annotationProcessing>

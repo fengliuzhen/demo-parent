@@ -11,10 +11,14 @@
     <file url="file://$PROJECT_DIR$/demo-eureka" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/demo-gateway" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/demo-job" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/demo-monitor" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/demo-producer" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/demo-quartz" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/demo-ribbon" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/demo-search" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/demo-service" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/demo-service-impl" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/demo-test" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/demo-zkms" charset="UTF-8" />
   </component>
 </project>
